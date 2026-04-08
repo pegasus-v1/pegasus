@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Clan {
+  id                        Int      @id @default(autoincrement())
+  nombre                    String   @unique @db.VarChar(50)
+  hora_entrada              DateTime @db.Time()
+  hora_salida               DateTime @db.Time()
+  tiempo_alimentacion_minutos Int
+  
+  team_leaders              TeamLeader[]
+  coders                    Coder[]
+  
+  @@map("clanes")
+}
+
+model TeamLeader {
+  id            Int      @id @default(autoincrement())
+  nombre        String   @db.VarChar(100)
+  correo        String   @unique @db.VarChar(100)
+  password_hash String   @db.VarChar(255)
+  rol           String   @db.VarChar(50) // 'TL desarrollo', 'TL inglés', 'TL habilidades', 'admin'
+  clan_id       Int
+  clan          Clan     @relation(fields: [clan_id], references: [id])
+  
+  @@map("team_leaders")
+}
+
+model Coder {
+  id            Int      @id @default(autoincrement())
+  cedula        String   @unique @db.VarChar(20)
+  nombre        String   @db.VarChar(100)
+  email         String   @db.VarChar(100)
+  moodle_id     Int      @unique
+  clan_id       Int
+  clan          Clan     @relation(fields: [clan_id], references: [id])
+  
+  correos_enviados CorreoEnviado[]
+  registros        Registro[]
+  
+  @@map("coder")
+}
+
+model CorreoEnviado {
+  id            Int      @id @default(autoincrement())
+  coder_id      Int
+  coder         Coder    @relation(fields: [coder_id], references: [id])
+  tipo_correo   String   @default("ausencia") @db.VarChar(50)
+  estado        String   @db.VarChar(20) // 'pendiente', 'enviado', 'fallido'
+  fecha_envio   DateTime @default(now())
+  
+  @@map("correos_enviados")
+}
+
+model Registro {
+  id            Int      @id @default(autoincrement())
+  coder_id      Int
+  coder         Coder    @relation(fields: [coder_id], references: [id])
+  fecha         DateTime @db.Date()
+  hora          DateTime @db.Time()
+  estado_acceso String   @db.VarChar(20) // 'In', 'Out'
+  evento        String   @db.VarChar(100)
+  
+  @@map("registros")
+}
