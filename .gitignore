@@ -1,4 +1,35 @@
+# Entornos virtuales
+venv/
+.venv/
+env/
 .env
-node_modules
-esquema_conexion.txt
-coders.xlsx
+bin/
+include/
+lib/
+share/
+pyvenv.cfg
+
+# Node
+node_modules/
+dist/
+build/
+.npm
+.eslintcache
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+.mypy_cache/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
