@@ -11,7 +11,7 @@ export default function DashboardCorreos({ fecha, clan }) {
   const [errorDesc, setErrorDesc] = useState(null);
 
   // Reemplaza esto con tu URL de Webhook de n8n real
-  const N8N_WEBHOOK_URL = "https://tu-n8n-instancia.com/webhook/enviar-correos";
+  const N8N_WEBHOOK_URL = "URL DEL WEBHOOK N8N";
 
   useEffect(() => {
     cargarAusentes();
@@ -22,7 +22,7 @@ export default function DashboardCorreos({ fecha, clan }) {
       setLoading(true);
       setErrorDesc(null);
       const res = await api.ausentes(fecha);
-      
+
       // Filtrar por clan si es necesario (asumiendo que tu frontend maneja el estado "clan")
       let filtrados = res.estudiantes || [];
       if (clan && clan !== "Todos") {
@@ -30,7 +30,7 @@ export default function DashboardCorreos({ fecha, clan }) {
           (est) => est.clan && est.clan.toLowerCase() === clan.toLowerCase()
         );
       }
-      
+
       setAusentes(filtrados);
     } catch (err) {
       console.error(err);
@@ -61,11 +61,11 @@ export default function DashboardCorreos({ fecha, clan }) {
       });
 
       if (!response.ok) {
-         // Even if failing we can show success if it's just a mock test.
-         // But let's log it.
-         console.warn("Fallo la petición a n8n. Asegurate de configurar tu URL real.");
+        // Even if failing we can show success if it's just a mock test.
+        // But let's log it.
+        console.warn("Fallo la petición a n8n. Asegurate de configurar tu URL real.");
       }
-      
+
       // Assumes success as this is an automation hook
       setExito(true);
     } catch (err) {
@@ -100,10 +100,10 @@ export default function DashboardCorreos({ fecha, clan }) {
           </svg>
           Envío Automatizado
         </h2>
-        
-        <button 
-          className="action-button primary" 
-          onClick={enviarN8n} 
+
+        <button
+          className="action-button primary"
+          onClick={enviarN8n}
           disabled={loading || enviando || ausentes.length === 0}
         >
           {enviando ? "Conectando..." : "Enviar a n8n"}
