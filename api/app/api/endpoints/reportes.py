@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from app.api.dependencies import verify_api_key, get_db
-from app.db.models import Coder, Clan, Registro, ConfiguracionClan, ResumenDiario, Incidencia
+from app.db.models import Coder, Clan, Registro, ConfiguracionClan, ResumenDiario, Incidencia, CorreoEnviado
 
 # --------------------------------------------------------------------------- #
 # Caché en memoria para endpoints de solo lectura                              #
@@ -361,6 +361,7 @@ async def ausentes(
                 "id": coder.id,
                 "nombre": coder.nombre,
                 "cedula": coder.cedula,
+                "email": coder.email,
                 "clan": coder.clan.nombre if coder.clan else None,
                 "razon": "Sin registros de acceso"
             })
@@ -370,6 +371,7 @@ async def ausentes(
             "id": coder.id,
             "nombre": coder.nombre,
             "cedula": coder.cedula,
+            "email": coder.email,
             "clan": coder.clan.nombre if coder.clan else None,
             "razon": "No procesado aún"
         })
@@ -613,4 +615,80 @@ async def asistieron(
         "fecha": fecha,
         "total": len(presentes),
         "estudiantes": presentes
+    }
+
+@router.get("/dashboard-correos", summary="Dashboard de Correos Pendientes/Enviados")
+async def dashboard_correos(
+    fecha: date = Query(..., description="Fecha (YYYY-MM-DD)"),
+    db: Session = Depends(get_db)
+):
+    from sqlalchemy.orm import joinedload
+    
+    # 1. Traer coders con ausente=True
+    resumenes_ausentes = db.query(ResumenDiario).options(
+        joinedload(ResumenDiario.coder).joinedload(Coder.clan)
+    ).filter(
+        ResumenDiario.fecha == fecha,
+        ResumenDiario.ausente == True
+    ).all()
+
+    # 2. Coders sin procesar (no están en ResumenDiario pero cuentan como ausentes si no asistieron)
+    ids_con_resumen = {r.coder_id for r in db.query(ResumenDiario.coder_id)
+                       .filter(ResumenDiario.fecha == fecha).all()}
+                       
+    query = db.query(Coder).options(joinedload(Coder.clan))
+    if ids_con_resumen:
+        query = query.filter(~Coder.id.in_(ids_con_resumen))
+    coders_sin_procesar = query.all()
+
+    todos_ausentes = []
+    for r in resumenes_ausentes:
+        if r.coder:
+            todos_ausentes.append(r.coder)
+            
+    for c in coders_sin_procesar:
+        todos_ausentes.append(c)
+
+    # 3. Traer correos agendados para esos ausentes
+    coders_ids = [c.id for c in todos_ausentes]
+    correos = db.query(CorreoEnviado).filter(CorreoEnviado.coder_id.in_(coders_ids)).all() if coders_ids else []
+    
+    estado_correos = {}
+    for cor in correos:
+        # Si tiene varios y al menos uno es enviado, lo consideramos enviado
+        if cor.estado == "enviado":
+            estado_correos[cor.coder_id] = "enviado"
+        elif cor.coder_id not in estado_correos:
+            estado_correos[cor.coder_id] = cor.estado
+
+    # 4. Formatear y calcular contadores
+    estudiantes = []
+    pendientes = 0
+    enviados = 0
+    faltas_hoy = len(todos_ausentes)
+
+    for c in todos_ausentes:
+        # Consideramos "pendiente" por defecto si es ausente y no hay registro aún
+        estado = estado_correos.get(c.id, "pendiente")
+        
+        if estado == "pendiente":
+            pendientes += 1
+        elif estado == "enviado":
+            enviados += 1
+
+        estudiantes.append({
+            "id": c.id,
+            "nombre": c.nombre,
+            "cedula": c.cedula,
+            "clan": c.clan.nombre if c.clan else "Sin clan",
+            "cohorte": "Cohorte 5", # Valor fijo
+            "estado_correo": estado
+        })
+
+    return {
+        "fecha": fecha,
+        "faltas_hoy": faltas_hoy,
+        "pendientes": pendientes,
+        "enviados": enviados,
+        "estudiantes": estudiantes
     }
