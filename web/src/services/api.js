@@ -36,3 +36,5 @@ export const api = {
 export const buscar = (q) => get(`${BASE}/coders/buscar?q=${encodeURIComponent(q)}`);
 export const detalleDia = (id, fecha) =>
   get(`${BASE}/coders/buscar/detalle?id=${id}&fecha=${fecha}`);
+export const historial = (id, dias = 7) =>
+  get(`${BASE}/coders/estudiantes/${id}/historial?dias=${dias}`);

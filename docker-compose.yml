@@ -1,0 +1,192 @@
+# ══════════════════════════════════════════════════════════════════
+# Pegasus – Docker Compose (Entorno de Desarrollo)
+# ══════════════════════════════════════════════════════════════════
+#
+# Descripción:
+#   Orquesta los servicios del ecosistema Pegasus para desarrollo local.
+#   Levanta el backend (FastAPI) y el frontend (React) con un solo comando.
+#
+# Comandos principales:
+#   docker compose up --build       → Construir y levantar todo
+#   docker compose up --build -d    → Lo mismo, pero en background
+#   docker compose down             → Detener y eliminar contenedores
+#   docker compose logs -f          → Ver logs en tiempo real
+#   docker compose logs -f api      → Ver solo logs del backend
+#   docker compose logs -f web      → Ver solo logs del frontend
+#   docker compose restart api      → Reiniciar solo el backend
+#   docker compose build api        → Reconstruir solo la imagen del API
+#
+# URLs disponibles:
+#   Frontend:   http://localhost:3000
+#   API Docs:   http://localhost:8000/docs   (Swagger UI)
+#   API Redoc:  http://localhost:8000/redoc
+#   Health:     http://localhost:8000/health
+#   n8n (opt):  http://localhost:5678
+#
+# ══════════════════════════════════════════════════════════════════
+
+services:
+
+  # ═══════════════════════════════════════════════════════════════
+  # API – Backend (FastAPI + Uvicorn)
+  # ═══════════════════════════════════════════════════════════════
+  # Servidor REST que procesa datos del torniquete, genera reportes
+  # de asistencia y expone endpoints para el dashboard.
+  #
+  # Imagen base: python:3.10-slim
+  # Puerto expuesto: 8000
+  # Hot-reload: Sí (Uvicorn --reload + volumen montado)
+  # ═══════════════════════════════════════════════════════════════
+  api:
+    build:
+      context: ./api            # Carpeta con el Dockerfile del backend
+      dockerfile: Dockerfile
+    container_name: pegasus-api
+    ports:
+      - "8000:8000"             # host:contenedor → accesible en localhost:8000
+
+    # Variables de entorno desde archivo externo
+    # Contiene: API_KEY, DATABASE_URL, ENVIRONMENT
+    # NOTA: Este archivo NO se copia a la imagen (→ .dockerignore),
+    # se inyecta en tiempo de ejecución por seguridad.
+    env_file:
+      - ./api/.env
+
+    volumes:
+      # Monta el código local en el contenedor para hot-reload.
+      # Cualquier cambio en ./api/ se refleja al instante sin rebuild.
+      - ./api:/app
+
+      # Volumen anónimo: protege __pycache__ generado por el contenedor
+      # para que no se mezcle con archivos del host.
+      - /app/__pycache__
+
+      # Monta la carpeta de datos del torniquete como solo-lectura.
+      # Dentro del contenedor está disponible en /data.
+      # Contiene: data/turnstile/ (archivos Excel de marcaciones)
+      #           data/users.json, data/torniquete.xlsx
+      - ./data:/data
+
+    environment:
+      # Ruta interna donde el contenedor accede a los datos del torniquete
+      - DATA_PATH=/data
+
+    networks:
+      - pegasus-net              # Red interna compartida entre servicios
+
+    restart: unless-stopped      # Se reinicia automáticamente si falla
+
+    # Healthcheck: verifica que el endpoint /health responda correctamente.
+    # El servicio web NO arranca hasta que este check pase (depends_on).
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s              # Cada cuánto se ejecuta el check
+      timeout: 10s               # Tiempo máximo de espera por respuesta
+      retries: 3                 # Intentos antes de marcar como "unhealthy"
+      start_period: 15s          # Tiempo de gracia al arrancar el contenedor
+
+  # ═══════════════════════════════════════════════════════════════
+  # WEB – Frontend (React / Create React App)
+  # ═══════════════════════════════════════════════════════════════
+  # Dashboard de gestión de asistencia. Muestra reportes de
+  # ausencias, retardos, fugas y permite el envío de correos.
+  #
+  # Imagen base: node:18-alpine
+  # Puerto expuesto: 3000
+  # Hot-reload: Sí (CRA HMR + volumen montado + polling)
+  #
+  # Comunicación con API:
+  #   El proxy de CRA (package.json → "proxy": "http://api:8000")
+  #   redirige las peticiones /api/* al servicio "api" usando el
+  #   DNS interno de Docker (el nombre del servicio = hostname).
+  # ═══════════════════════════════════════════════════════════════
+  web:
+    build:
+      context: ./web             # Carpeta con el Dockerfile del frontend
+      dockerfile: Dockerfile
+    container_name: pegasus-web
+    ports:
+      - "3000:3000"              # host:contenedor → accesible en localhost:3000
+
+    volumes:
+      # Monta el código local para hot-reload.
+      # Los cambios en ./web/src/ se reflejan al instante en el navegador.
+      - ./web:/app
+
+      # Volumen anónimo: protege node_modules instalados DENTRO del contenedor.
+      # Sin esto, el montaje de ./web sobreescribiría node_modules con la
+      # versión del host (que puede ser incompatible: Windows vs Alpine Linux).
+      - /app/node_modules
+
+    environment:
+      # Variable que CRA puede leer para configurar el proxy
+      - PROXY=http://api:8000
+
+      # ── Configuración de Hot Reload para Docker en Windows/macOS ──
+      # Los sistemas de archivos montados (bind mounts) no generan
+      # eventos de filesystem nativos, así que CRA necesita usar
+      # "polling" (revisar archivos periódicamente) para detectar cambios.
+      - CHOKIDAR_USEPOLLING=true   # Para versiones CRA que usan chokidar
+      - WATCHPACK_POLLING=true     # Para versiones CRA que usan watchpack
+      - WDS_SOCKET_PORT=3000       # Puerto del WebSocket de HMR
+
+    # El frontend NO arranca hasta que el API esté healthy.
+    # Esto previene errores de "Connection refused" al cargar el dashboard.
+    depends_on:
+      api:
+        condition: service_healthy
+
+    networks:
+      - pegasus-net
+
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════
+  # n8n – Motor de Automatización (OPCIONAL)
+  # ═══════════════════════════════════════════════════════════════
+  # Plataforma de workflows para automatizar el envío de correos
+  # a coders ausentes. El DashboardCorreos.jsx enviará datos al
+  # webhook de n8n para disparar el flujo de emails.
+  #
+  # Para activar:
+  #   1. Descomentar el bloque "n8n:" de abajo
+  #   2. Descomentar el bloque "volumes:" al final del archivo
+  #   3. Ejecutar: docker compose up --build
+  #   4. Acceder a: http://localhost:5678
+  #   5. Copiar la URL del webhook creado en n8n y pegarla en
+  #      DashboardCorreos.jsx → N8N_WEBHOOK_URL
+  #
+  # Credenciales por defecto:
+  #   Usuario:    admin
+  #   Contraseña: pegasus2026
+  # ═══════════════════════════════════════════════════════════════
+  # n8n:
+  #   image: n8nio/n8n:latest
+  #   container_name: pegasus-n8n
+  #   ports:
+  #     - "5678:5678"            # Panel web de n8n
+  #   environment:
+  #     - N8N_BASIC_AUTH_ACTIVE=true
+  #     - N8N_BASIC_AUTH_USER=admin
+  #     - N8N_BASIC_AUTH_PASSWORD=pegasus2026
+  #     - WEBHOOK_URL=http://localhost:5678/
+  #   volumes:
+  #     - n8n_data:/home/node/.n8n  # Persistir workflows y credenciales
+  #   networks:
+  #     - pegasus-net
+  #   restart: unless-stopped
+
+# ═══════════════════════════════════════════════════════════════
+# Red interna – pegasus-net
+# ═══════════════════════════════════════════════════════════════
+# Todos los servicios comparten esta red bridge.
+# Se comunican entre sí usando el nombre del servicio como hostname:
+#   - web puede acceder al API como: http://api:8000
+#   - Si n8n está activo, la API puede llamarlo como: http://n8n:5678
+networks:
+  pegasus-net:
+    driver: bridge
+
+# Descomentar si se habilita n8n (persiste datos entre reinicios)
+# volumes:
+#   n8n_data:

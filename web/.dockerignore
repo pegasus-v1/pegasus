@@ -1,0 +1,27 @@
+# ══════════════════════════════════════════════════════════════════
+# Pegasus Web – .dockerignore
+# ══════════════════════════════════════════════════════════════════
+# Este archivo le dice a Docker qué archivos/carpetas IGNORAR
+# al ejecutar COPY o ADD en el Dockerfile.
+#
+# ¿Por qué es importante?
+#   - node_modules/ local puede pesar >200MB y causar conflictos
+#     con los módulos instalados dentro del contenedor (Alpine vs Windows)
+#   - Reduce drásticamente el tiempo de build y el tamaño del contexto
+# ══════════════════════════════════════════════════════════════════
+
+# Dependencias locales (se instalan dentro del contenedor con npm install)
+# CRÍTICO: Los módulos compilados en Windows no funcionan en Alpine Linux.
+node_modules/
+
+# Builds de producción previos (innecesarios en dev)
+build/
+dist/
+
+# Caché de npm y linters
+.npm
+.eslintcache
+
+# Control de versiones
+.git/
+.gitignore

@@ -1,6 +1,6 @@
 // src/components/Buscador.jsx
 import { useState, useRef, useEffect } from "react";
-import { buscar, detalleDia } from "../services/api";
+import { buscar, detalleDia, historial } from "../services/api";
 
 const ESTADO_CONFIG = {
   puntual:         { label: "Puntual",  bg: "var(--ok-bg)",      text: "var(--ok-text)"     },
@@ -46,7 +46,7 @@ function DetalleDia({ estudianteId, fechaStr }) {
 
   useEffect(() => {
     detalleDia(estudianteId, fechaStr)
-      .then(d => setData(d.eventos || []))
+      .then(d => setData(d.registros || []))
       .catch(() => setData([]))
       .finally(() => setLoading(false));
   }, [estudianteId, fechaStr]);
@@ -92,15 +92,64 @@ function DetalleDia({ estudianteId, fechaStr }) {
 
 function DiasToggle({ est }) {
   const [abiertos, setAbiertos] = useState({});
+  const [dias, setDias] = useState(Array.isArray(est.dias) ? est.dias : null);
+  const [loadingDias, setLoadingDias] = useState(false);
+  const [diasError, setDiasError] = useState(null);
 
   const toggleDia = (fechaStr) =>
     setAbiertos(prev => ({ ...prev, [fechaStr]: !prev[fechaStr] }));
 
-  // Pre-calcular fechaStr para cada día una sola vez
-  const diasConFecha = est.dias.map(dia => ({
+  const cargarHistorial = () => {
+    if (dias !== null) return; // Ya cargado
+    setLoadingDias(true);
+    historial(est.id, 7)
+      .then((result) => setDias(result.historial || []))
+      .catch(() => {
+        setDiasError("No se pudo cargar el historial");
+        setDias([]);
+      })
+      .finally(() => setLoadingDias(false));
+  };
+
+  const diasConFecha = (dias || []).map(dia => ({
     ...dia,
     fechaStr: toFechaStr(dia.fecha),
   }));
+
+  if (dias === null && !loadingDias) {
+    return (
+      <button
+        onClick={cargarHistorial}
+        style={{
+          padding: "8px 16px",
+          borderRadius: 6,
+          border: "1px solid var(--color-border)",
+          background: "var(--color-bg)",
+          color: "var(--color-text)",
+          cursor: "pointer",
+          fontSize: 12,
+        }}
+      >
+        Cargar historial de asistencia
+      </button>
+    );
+  }
+
+  if (loadingDias) {
+    return (
+      <p style={{ fontSize: 12, color: "var(--color-text-muted)", padding: "8px 0" }}>
+        Cargando historial...
+      </p>
+    );
+  }
+
+  if (dias && dias.length === 0) {
+    return (
+      <p style={{ fontSize: 12, color: "var(--color-text-muted)", padding: "8px 0" }}>
+        {diasError || "No hay historial disponible para este estudiante."}
+      </p>
+    );
+  }
 
   return (
     <div>
@@ -241,6 +290,7 @@ export default function Buscador({clan}) {
   const [loading,    setLoading]    = useState(false);
   const [error,      setError]      = useState(null);
   const timerRef = useRef(null);
+  const searchIdRef = useRef(0);
 
   const handleChange = (e) => {
     const val = e.target.value;
@@ -253,17 +303,30 @@ export default function Buscador({clan}) {
       return;
     }
 
+    // Incrementar ID de búsqueda para ignorar respuestas antiguas
+    const currentSearchId = ++searchIdRef.current;
+
     timerRef.current = setTimeout(async () => {
+      // Verificar si esta búsqueda aún es la actual
+      if (currentSearchId !== searchIdRef.current) return;
+
       setLoading(true);
       try {
         const data = await buscar(val.trim());
-        setResultados(data.resultados || []);
+        // Verificar de nuevo antes de setear
+        if (currentSearchId === searchIdRef.current) {
+          setResultados(data.resultados || []);
+        }
       } catch {
-        setError("Error al buscar");
+        if (currentSearchId === searchIdRef.current) {
+          setError("Error al buscar");
+        }
       } finally {
-        setLoading(false);
+        if (currentSearchId === searchIdRef.current) {
+          setLoading(false);
+        }
       }
-    }, 400);
+    }, 800);
   };
 
   const limpiar = () => {

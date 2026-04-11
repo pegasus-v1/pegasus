@@ -66,7 +66,7 @@ export default function App() {
                 color:         "var(--color-text)",
                 margin:        "0 0 20px",
               }}>
-                 InFoX
+                 Info✗
               </h1>
 
               {/* Buscador */}

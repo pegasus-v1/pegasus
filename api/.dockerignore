@@ -1,0 +1,34 @@
+# ══════════════════════════════════════════════════════════════════
+# Pegasus API – .dockerignore
+# ══════════════════════════════════════════════════════════════════
+# Este archivo le dice a Docker qué archivos/carpetas IGNORAR
+# al ejecutar COPY o ADD en el Dockerfile.
+#
+# ¿Por qué es importante?
+#   - Reduce el tamaño del "build context" enviado al daemon Docker
+#   - Evita copiar archivos sensibles (.env) a la imagen final
+#   - Previene conflictos con archivos del host (ej: __pycache__)
+#   - Acelera el build al procesar menos archivos
+# ══════════════════════════════════════════════════════════════════
+
+# Caché de bytecode de Python (se regenera dentro del contenedor)
+__pycache__/
+*.py[cod]
+
+# Entornos virtuales locales (el contenedor usa sus propios paquetes)
+.venv/
+venv/
+env/
+
+# Variables de entorno (se inyectan via env_file en docker-compose)
+# NUNCA deben quedar embebidas en la imagen por seguridad.
+.env
+
+# Caché de testing y linters
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# Control de versiones (innecesario dentro del contenedor)
+.git/
+.gitignore
