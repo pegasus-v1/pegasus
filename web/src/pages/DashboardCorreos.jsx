@@ -11,7 +11,7 @@ export default function DashboardCorreos({ fecha, clan }) {
   const [errorDesc, setErrorDesc] = useState(null);
 
   // Reemplaza esto con tu URL de Webhook de n8n real
-  const N8N_WEBHOOK_URL = "URL DEL WEBHOOK N8N";
+  const N8N_WEBHOOK_URL = "https://geminiprof3.app.n8n.cloud/webhook/pegasus-ausentes";
 
   useEffect(() => {
     cargarAusentes();
