@@ -21,13 +21,13 @@ def import_coders():
     users_path = Path(__file__).parent.parent.parent / "data" / "users.json"
     
     if not users_path.exists():
-        print(f"❌ Archivo {users_path} no encontrado")
+        print(f" Archivo {users_path} no encontrado")
         sys.exit(1)
     
     with open(users_path, 'r', encoding='utf-8') as f:
         users = json.load(f)
     
-    print(f"📊 Leyendo {len(users)} coders desde {users_path}")
+    print(f" Leyendo {len(users)} coders desde {users_path}")
     
     db = SessionLocal()
     
@@ -81,7 +81,7 @@ def import_coders():
                 coder_existente.moodle_id = moodle_id
                 coder_existente.clan_id = clan_map[clan_nombre]
                 actualizados += 1
-                print(f"  ↩️ Actualizado: {nombre_completo} ({document}) - Clan {clan_nombre}")
+                print(f"   Actualizado: {nombre_completo} ({document}) - Clan {clan_nombre}")
             else:
                 # Crear nuevo
                 nuevo_coder = Coder(
@@ -93,27 +93,27 @@ def import_coders():
                 )
                 db.add(nuevo_coder)
                 nuevos += 1
-                print(f"  ✅ Nuevo: {nombre_completo} ({document}) - Clan {clan_nombre}")
+                print(f"   Nuevo: {nombre_completo} ({document}) - Clan {clan_nombre}")
         
         db.commit()
         
-        print(f"\n📈 Resumen:")
+        print(f"\n Resumen:")
         print(f"  • Nuevos coders: {nuevos}")
         print(f"  • Coders actualizados: {actualizados}")
         print(f"  • Total en DB: {nuevos + actualizados}")
         
         if errores:
-            print(f"\n⚠️  Errores ({len(errores)}):")
+            print(f"\n  Errores ({len(errores)}):")
             for error in errores[:10]:  # Mostrar primeros 10
                 print(f"  • {error}")
             if len(errores) > 10:
                 print(f"  • ... y {len(errores) - 10} más")
         
-        print("\n✅ Importación completada")
+        print("\n Importación completada")
         
     except Exception as e:
         db.rollback()
-        print(f"\n❌ Error durante la importación: {e}")
+        print(f"\n Error durante la importación: {e}")
         raise
     finally:
         db.close()

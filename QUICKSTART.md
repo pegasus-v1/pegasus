@@ -1,8 +1,8 @@
-# 🚀 Pegasus - Quick Start Guide
+#  Pegasus - Quick Start Guide
 
 Bienvenido al proyecto **Pegasus**. Esta guía te ayudará a poner en marcha tanto la API como la Web usando Docker Compose en pocos minutos.
 
-## 📋 Requisitos Previos
+##  Requisitos Previos
 
 Asegúrate de tener instalado:
 - **Docker** (versión 20.10 o superior)
@@ -13,7 +13,7 @@ Asegúrate de tener instalado:
 
 ---
 
-## 🐳 1. Obtener el Proyecto
+##  1. Obtener el Proyecto
 
 1. **Clona el repositorio** (o descomprime si ya lo tienes):
    ```bash
@@ -29,7 +29,7 @@ Asegúrate de tener instalado:
 
 ---
 
-## 🚀 2. Levantar los Servicios con Docker Compose
+##  2. Levantar los Servicios con Docker Compose
 
 Docker Compose orquestará automáticamente la API (FastAPI) y la Web (React).
 
@@ -74,7 +74,7 @@ Docker Compose orquestará automáticamente la API (FastAPI) y la Web (React).
 
 ---
 
-## 🌐 3. Acceder a la Aplicación
+##  3. Acceder a la Aplicación
 
 Una vez que los contenedores estén corriendo:
 
@@ -91,7 +91,7 @@ Una vez que los contenedores estén corriendo:
 
 ---
 
-## 🛑 4. Detener y Limpiar
+##  4. Detener y Limpiar
 
 Cuando termines:
 
