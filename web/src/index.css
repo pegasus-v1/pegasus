@@ -2,27 +2,48 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+  /* Light Theme (Default) */
   --color-bg:          #ffffff;
-  --color-surface:     #f7f6f2;
-  --color-border:      rgba(0,0,0,0.1);
-  --color-text:        #1a1a18;
-  --color-text-muted:  #6b6b67;
+  --color-surface:     #fafafa;
+  --color-border:      rgba(0,0,0,0.08);
+  --color-text:        #111827;
+  --color-text-muted:  #6b7280;
+
+  /* Navbar variables (Midnight Blue theme) */
+  --nav-bg:            #0f172a;
+  --nav-text:          #f8fafc;
+  --nav-border:        rgba(255,255,255,0.1);
+  --nav-surface:       #1e293b;
+  --nav-text-muted:    #94a3b8;
 
   --ok-bg:      #EAF3DE; --ok-text:     #27500A;
   --warn-bg:    #FAEEDA; --warn-text:   #633806;
   --danger-bg:  #FCEBEB; --danger-text: #791F1F;
   --absent-bg:  #F1EFE8; --absent-text: #5F5E5A;
   --info-bg:    #E6F1FB; --info-text:   #0C447C;
+
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg:         #1c1c1a;
-    --color-surface:    #252522;
-    --color-border:     rgba(255,255,255,0.1);
-    --color-text:       #e8e6df;
-    --color-text-muted: #9a9891;
-  }
+[data-theme='dark'] {
+  --color-bg:          #0f172a;
+  --color-surface:     #020617;
+  --color-border:      rgba(255,255,255,0.1);
+  --color-text:        #f8fafc;
+  --color-text-muted:  #94a3b8;
+
+  /* Navbar variables (Dark mode keeps the Midnight Blue, maybe a bit darker) */
+  --nav-bg:            #020617;
+  --nav-text:          #f8fafc;
+  --nav-border:        rgba(255,255,255,0.05);
+  --nav-surface:       #0f172a;
+  --nav-text-muted:    #94a3b8;
+
+  --ok-bg:      #1e293b; --ok-text:     #4ade80;
+  --warn-bg:    #1e293b; --warn-text:   #fbbf24;
+  --danger-bg:  #1e293b; --danger-text: #f87171;
+  --absent-bg:  #1e293b; --absent-text: #94a3b8;
+  --info-bg:    #1e293b; --info-text:   #60a5fa;
 }
 
 body {
