@@ -14,6 +14,7 @@ export default function App() {
   const [fecha, setFecha] = useState("2026-01-14");
   const [clan,  setClan]  = useState("Todos");
   const [vistaActual, setVistaActual] = useState("asistencia");
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
   const [abiertas, setAbiertas] = useState({
     tarde:      false,
@@ -22,6 +23,11 @@ export default function App() {
     salidas:    false,
     asistieron: false,
   });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   const toggle = (key) =>
     setAbiertas(prev => ({ ...prev, [key]: !prev[key] }));
@@ -34,6 +40,7 @@ export default function App() {
         fecha={fecha} setFecha={setFecha}
         clan={clan}   setClan={setClan}
         vistaActual={vistaActual} setVistaActual={setVistaActual}
+        theme={theme} setTheme={setTheme}
       />
 
       <main style={{
@@ -79,6 +86,7 @@ export default function App() {
               }}>
                 {fecha}{clan !== "Todos" && ` · ${clan.charAt(0) + clan.slice(1).toLowerCase()}`}
               </p>
+
             </div>
 
             {/* Botones toggle */}
