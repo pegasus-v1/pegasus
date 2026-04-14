@@ -102,28 +102,19 @@ export default function DashboardCorreos({ fecha, clan }) {
         </h2>
 
         <button
-          className="action-button primary"
+          className="action-button primary n8n-button"
           onClick={enviarN8n}
           disabled={loading || enviando || ausentes.length === 0}
+          title={enviando ? "Conectando..." : "Enviar a n8n"}
         >
-          {enviando ? "Conectando..." : "Enviar a n8n"}
-          {!enviando && (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
-          )}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
         </button>
       </div>
 
-      <div className="n8n-alert">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="16" x2="12" y2="12"></line>
-          <line x1="12" y1="8" x2="12.01" y2="8"></line>
-        </svg>
-        El sistema recolecta unicamente la data de InFoX (ausencias del día). Asegúrate de actualizar el webhook <strong>N8N_WEBHOOK_URL</strong> en este componente.
-      </div>
+      {/* Alerta de n8n removida por solicitud */}
 
       {errorDesc && (
         <div style={{ color: "var(--danger-text)", background: "var(--danger-bg)", padding: 12, borderRadius: 8 }}>

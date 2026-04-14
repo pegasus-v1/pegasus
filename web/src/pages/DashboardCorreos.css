@@ -65,11 +65,18 @@
   gap: 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .action-button.primary {
-    background: #e8e6df;
-    color: #111;
-  }
+[data-theme='dark'] .action-button.primary {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.action-button.primary.n8n-button {
+  padding: 10px;
+  border-radius: 12px;
+  width: 64px;
+  height: 44px;
+  justify-content: center;
+  gap: 0;
 }
 
 .action-button.primary:hover {
@@ -106,10 +113,8 @@
   border-color: rgba(0, 0, 0, 0.15);
 }
 
-@media (prefers-color-scheme: dark) {
-  .coder-card:hover {
-    border-color: rgba(255, 255, 255, 0.25);
-  }
+[data-theme='dark'] .coder-card:hover {
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .coder-card-header {
