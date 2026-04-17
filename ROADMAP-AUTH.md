@@ -43,13 +43,13 @@ gantt
 Preparar el entorno de desarrollo con todas las dependencias y configuraciones necesarias.
 
 ### Tareas
-1. **Verificar estado de la base de datos** (1h)
+1. **Verificar estado de la base de datos** 
    - [ ] Conectarse a DB de desarrollo/producción
    - [ ] Verificar si tabla `team_leaders` existe
    - [ ] Consultar estructura actual: `SELECT * FROM information_schema.tables WHERE table_name = 'team_leaders';`
    - [ ] Decidir: nueva migración vs ajuste de migración existente
 
-2. **Configurar dependencias backend** (30m)
+2. **Configurar dependencias backend**
    - [ ] Agregar a `api/requirements.txt`:
      ```txt
      python-jose[cryptography]==3.3.0
@@ -57,7 +57,7 @@ Preparar el entorno de desarrollo con todas las dependencias y configuraciones n
      ```
    - [ ] Ejecutar `pip install -r requirements.txt` (o equivalente en Docker)
 
-3. **Configurar variables de entorno** (30m)
+3. **Configurar variables de entorno**
    - [ ] Crear/actualizar `.env` con:
      ```env
      JWT_SECRET=<clave-aleatoria-256-bits>
@@ -68,20 +68,20 @@ Preparar el entorno de desarrollo con todas las dependencias y configuraciones n
    - [ ] Actualizar `docker-compose.yml` si es necesario para propagar variables
 
 ### Entregables Fase 1
-- ✅ Dependencias instaladas y verificadas
-- ✅ Variables de entorno configuradas
-- ✅ Decisión tomada sobre migración de DB
-- ✅ Ambiente listo para desarrollo
+-  Dependencias instaladas y verificadas
+-  Variables de entorno configuradas
+-  Decisión tomada sobre migración de DB
+-  Ambiente listo para desarrollo
 
 ---
 
-## Fase 2: Backend Authentication (Día 1 - Tarde)
+## Fase 2: Backend Authentication
 
 ### Objetivo
 Implementar el endpoint de login, utilidades JWT/bcrypt, y preparar la base de datos.
 
 ### Tareas
-1. **Crear utilidades de seguridad** (2h)
+1. **Crear utilidades de seguridad**
    - [ ] Crear `api/app/core/security.py` con:
      - Función `create_access_token(data: dict, expires_delta: timedelta)`
      - Función `verify_password(plain_password, hashed_password)`
@@ -89,7 +89,7 @@ Implementar el endpoint de login, utilidades JWT/bcrypt, y preparar la base de d
      - Función `verify_jwt_token(token: str) -> dict`
    - [ ] Configurar dependencia de JWT_SECRET desde variables de entorno
 
-2. **Implementar endpoint `/auth/login`** (2h)
+2. **Implementar endpoint `/auth/login`**
    - [ ] Crear `api/app/api/endpoints/auth.py`:
      - `POST /login` con validación de credenciales
      - Retorno de JWT y datos de usuario
@@ -124,28 +124,28 @@ Implementar el endpoint de login, utilidades JWT/bcrypt, y preparar la base de d
    - [ ] Probar token expirado/inválido
 
 ### Entregables Fase 2
-- ✅ Endpoint `/auth/login` funcional
-- ✅ Token JWT generado y verificado correctamente
-- ✅ Tabla `team_leaders` creada en DB
-- ✅ Usuarios iniciales insertados
-- ✅ Testing manual exitoso
+-  Endpoint `/auth/login` funcional
+-  Token JWT generado y verificado correctamente
+-  Tabla `team_leaders` creada en DB
+-  Usuarios iniciales insertados
+-  Testing manual exitoso
 
 ---
 
-## Fase 3: Frontend Authentication (Día 2)
+## Fase 3: Frontend Authentication
 
 ### Objetivo
 Implementar la autenticación en el frontend: login, protección de rutas, y gestión de sesión.
 
 ### Tareas
-1. **Crear AuthContext** (1.5h)
+1. **Crear AuthContext**
    - [ ] Crear `web/src/context/AuthContext.jsx`:
      - Estado global: `{ user, token, isLoading }`
      - Funciones: `login(email, password)`, `logout()`, `checkAuth()`
      - Efecto para verificar token en localStorage al cargar
      - Interceptor para agregar token a requests
 
-2. **Implementar LoginPage** (1.5h)
+2. **Implementar LoginPage**
    - [ ] Crear `web/src/pages/LoginPage.jsx`:
      - Formulario con campos: correo, contraseña
      - Validación básica (email format, password requirements)
@@ -153,7 +153,7 @@ Implementar la autenticación en el frontend: login, protección de rutas, y ges
      - Integración con AuthContext.login()
    - [ ] Estilos básicos (puede reusar estilos existentes)
 
-3. **Configurar React Router** (1h)
+3. **Configurar React Router**
    - [ ] Instalar `react-router-dom` si no está (ya está en package.json)
    - [ ] Crear `web/src/components/ProtectedRoute.jsx`:
      - Wrapper que redirige a login si no autenticado
@@ -163,42 +163,42 @@ Implementar la autenticación en el frontend: login, protección de rutas, y ges
      - Definir rutas: `/login`, `/dashboard` (protegida)
      - Redirección automática de `/` a `/dashboard` si autenticado
 
-4. **Modificar servicios API** (1h)
+4. **Modificar servicios API**
    - [ ] Actualizar `web/src/services/api.js`:
      - Remover API key hardcodeada
      - Agregar token JWT a headers: `Authorization: Bearer ${token}`
      - Manejo automático de 401 responses (logout)
    - [ ] Actualizar todas las llamadas existentes para usar nuevo sistema
 
-5. **Actualizar Navbar** (1h)
+5. **Actualizar Navbar**
    - [ ] Modificar `web/src/components/Navbar.jsx`:
      - Mostrar nombre del usuario logueado
      - Agregar botón "Cerrar sesión"
      - Integrar con AuthContext.logout()
      - Ocultar/mostrar elementos según autenticación
 
-6. **Testing frontend** (1h)
+6. **Testing frontend**
    - [ ] Probar flujo completo: login → dashboard → logout
    - [ ] Verificar redirección sin token
    - [ ] Probar token expirado (simular con token viejo)
    - [ ] Validar que API calls incluyen token
 
 ### Entregables Fase 3
-- ✅ Login funcional en frontend
-- ✅ Rutas protegidas correctamente
-- ✅ Token persistido en localStorage
-- ✅ Navbar muestra usuario y logout
-- ✅ API calls con JWT en headers
+-  Login funcional en frontend
+-  Rutas protegidas correctamente
+-  Token persistido en localStorage
+-  Navbar muestra usuario y logout
+-  API calls con JWT en headers
 
 ---
 
-## Fase 4: Integración y Deploy (Día 3)
+## Fase 4: Integración y Deploy
 
 ### Objetivo
 Integrar autenticación con endpoints existentes, testing completo, y despliegue.
 
 ### Tareas
-1. **Proteger endpoints de la API** (2h)
+1. **Proteger endpoints de la API**
    - [ ] Modificar `api/app/api/dependencies.py`:
      - Crear `verify_jwt_token` dependency
      - Mantener `verify_api_key` como fallback para compatibilidad
@@ -209,7 +209,7 @@ Integrar autenticación con endpoints existentes, testing completo, y despliegue
      ```
    - [ ] Loggear warnings cuando se use API key (deprecation)
 
-2. **Testing de integración** (2h)
+2. **Testing de integración**
    - [ ] Probar flujo end-to-end:
      - Login frontend → token → request a endpoint protegido
      - Verificar que datos se muestran correctamente
@@ -220,7 +220,7 @@ Integrar autenticación con endpoints existentes, testing completo, y despliegue
      - Token expirado
      - Usuario no existente en DB
 
-3. **Documentación** (1h)
+3. **Documentación**
    - [ ] Actualizar `QUICKSTART.md` con:
      - Nuevos pasos de configuración
      - Credenciales iniciales
@@ -228,7 +228,7 @@ Integrar autenticación con endpoints existentes, testing completo, y despliegue
    - [ ] Actualizar `README.md` con información de autenticación
    - [ ] Crear `API_AUTH.md` con especificación de endpoints auth (opcional)
 
-4. **Deploy y validación** (1h)
+4. **Deploy y validación**
    - [ ] Ejecutar migración en entorno de producción
    - [ ] Ejecutar script seed en producción
    - [ ] Configurar variables de entorno en producción
@@ -236,11 +236,11 @@ Integrar autenticación con endpoints existentes, testing completo, y despliegue
    - [ ] Monitorear logs por errores
 
 ### Entregables Fase 4
-- ✅ Todos los endpoints protegidos con JWT
-- ✅ Compatibilidad mantenida con API key
-- ✅ Testing integral completado
-- ✅ Documentación actualizada
-- ✅ Sistema desplegado y funcional en producción
+-  Todos los endpoints protegidos con JWT
+-  Compatibilidad mantenida con API key
+-  Testing integral completado
+-  Documentación actualizada
+-  Sistema desplegado y funcional en producción
 
 ---
 

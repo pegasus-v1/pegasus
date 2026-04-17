@@ -13,7 +13,7 @@ Actualmente el dashboard es accesible sin autenticación de usuarios, solo con u
 
 ## Alcance
 
-### ✅ Incluido
+### Incluido
 - Login con correo electrónico y contraseña
 - Tokens JWT con expiración de 8 horas
 - Protección de todas las rutas del dashboard
@@ -23,7 +23,7 @@ Actualmente el dashboard es accesible sin autenticación de usuarios, solo con u
 - Logout automático por expiración
 - Mostrar nombre del usuario en navbar
 
-### ❌ Excluido (Sprints futuros)
+### Excluido (Sprints futuros)
 - Recuperación de contraseña por email
 - Bloqueo de cuenta por intentos fallidos
 - Autenticación de dos factores (2FA)
